@@ -47,13 +47,13 @@ function workLoop(deadline) {
   requestIdleCallback(workLoop);
 }
 
-function commitRoot(root) {
+function commitRoot() {
   commitWork(root.child);
   root = null;
 }
 
 function commitWork(fiber) {
-  if (!fiber.dom) return;
+  if (!fiber) return;
   fiber.parent.dom.append(fiber.dom);
   commitWork(fiber.child);
   commitWork(fiber.sibing);
@@ -74,21 +74,22 @@ function updatedProps(dom, props) {
   });
 }
 
-function initChildren(work) {
+function initChildren(fiber) {
+  let preChild = null;
   //3.链表转换 设置好指针
-  const children = work.props.children;
+  const children = fiber.props.children;
   children.forEach((child, index) => {
     const newWork = {
       dom: null,
       type: child.type,
       props: child.props,
       child: null,
-      parent: work,
+      parent: fiber,
       sibing: null,
     };
 
     if (index === 0) {
-      work.child = newWork;
+      fiber.child = newWork;
     } else {
       preChild.sibing = newWork;
     }
@@ -96,27 +97,27 @@ function initChildren(work) {
   });
 }
 
-function performWorkOfUnit(work) {
+function performWorkOfUnit(fiber) {
   //1.创建dom
-  if (!work.dom) {
-    const dom = (work.dom = createDom(work.type));
+  if (!fiber.dom) {
+    const dom = (fiber.dom = createDom(fiber.type));
 
-    work.parent.dom.append(dom);
-    updatedProps(dom, work.props);
+    fiber.parent.dom.append(dom);
+    updatedProps(dom, fiber.props);
   }
 
-  initChildren(work);
+  initChildren(fiber);
 
   //4.返回下一个要执行的任务
-  if (work.child) {
-    return work.child;
+  if (fiber.child) {
+    return fiber.child;
   }
 
-  if (work.sibing) {
-    return work.sibing;
+  if (fiber.sibing) {
+    return fiber.sibing;
   }
 
-  return work.parent?.sibing;
+  return fiber.parent?.sibing;
 }
 
 requestIdleCallback(workLoop);
