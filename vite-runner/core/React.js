@@ -40,7 +40,23 @@ function workLoop(deadline) {
     shoudYied = deadline.timeRemaining() < 1;
   }
 
+  if (!nextWorkOfUnit && root) {
+    commitRoot();
+  }
+
   requestIdleCallback(workLoop);
+}
+
+function commitRoot(root) {
+  commitWork(root.child);
+  root = null;
+}
+
+function commitWork(fiber) {
+  if (!fiber.dom) return;
+  fiber.parent.dom.append(fiber.dom);
+  commitWork(fiber.child);
+  commitWork(fiber.sibing);
 }
 
 function createDom(type) {
@@ -59,7 +75,6 @@ function updatedProps(dom, props) {
 }
 
 function initChildren(work) {
-  let preChild = null;
   //3.链表转换 设置好指针
   const children = work.props.children;
   children.forEach((child, index) => {
@@ -69,13 +84,13 @@ function initChildren(work) {
       props: child.props,
       child: null,
       parent: work,
-      sibling: null,
+      sibing: null,
     };
 
     if (index === 0) {
       work.child = newWork;
     } else {
-      preChild.sibling = newWork;
+      preChild.sibing = newWork;
     }
     preChild = newWork;
   });
@@ -97,11 +112,11 @@ function performWorkOfUnit(work) {
     return work.child;
   }
 
-  if (work.sibling) {
-    return work.sibling;
+  if (work.sibing) {
+    return work.sibing;
   }
 
-  return work.parent?.sibling;
+  return work.parent?.sibing;
 }
 
 requestIdleCallback(workLoop);
