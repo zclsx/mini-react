@@ -14,7 +14,9 @@ function createElement(type, props, ...children) {
     props: {
       ...props,
       children: children.map((child) => {
-        return typeof child === "string" ? createTextNode(child) : child;
+        const isTextNode =
+          typeof child === "string" || typeof child === "number";
+        return isTextNode ? createTextNode(child) : child;
       }),
     },
   };
@@ -54,7 +56,16 @@ function commitRoot() {
 
 function commitWork(fiber) {
   if (!fiber) return;
-  fiber.parent.dom.append(fiber.dom);
+
+  let fiberParent = fiber.parent;
+  while (!fiberParent.dom) {
+    fiberParent = fiberParent.parent;
+  }
+
+  if (fiber.dom) {
+    fiberParent.dom.append(fiber.dom);
+  }
+  // fiberParent.dom.append(fiber.dom);
   commitWork(fiber.child);
   commitWork(fiber.sibing);
 }
@@ -74,10 +85,10 @@ function updatedProps(dom, props) {
   });
 }
 
-function initChildren(fiber) {
+function initChildren(fiber, children) {
   let preChild = null;
   //3.链表转换 设置好指针
-  const children = fiber.props.children;
+
   children.forEach((child, index) => {
     const newWork = {
       dom: null,
@@ -98,26 +109,41 @@ function initChildren(fiber) {
 }
 
 function performWorkOfUnit(fiber) {
-  //1.创建dom
-  if (!fiber.dom) {
-    const dom = (fiber.dom = createDom(fiber.type));
+  const isFunctionComponent = typeof fiber.type === "function";
 
-    fiber.parent.dom.append(dom);
-    updatedProps(dom, fiber.props);
+  if (isFunctionComponent) {
+    // console.log(fiber.type());
   }
+  if (!isFunctionComponent) {
+    //1.创建dom
+    if (!fiber.dom) {
+      const dom = (fiber.dom = createDom(fiber.type));
 
-  initChildren(fiber);
+      // fiber.parent.dom.append(dom);
+      updatedProps(dom, fiber.props);
+    }
+  }
+  const children = isFunctionComponent
+    ? [fiber.type(fiber.props)]
+    : fiber.props.children;
+  // console.log(111, children);
+  initChildren(fiber, children);
 
   //4.返回下一个要执行的任务
   if (fiber.child) {
     return fiber.child;
   }
 
-  if (fiber.sibing) {
-    return fiber.sibing;
-  }
+  // if (fiber.sibing) {
+  //   return fiber.sibing;
+  // }
 
-  return fiber.parent?.sibing;
+  let nextFiber = fiber;
+  while (nextFiber) {
+    if (nextFiber.sibing) return nextFiber.sibing;
+    nextFiber = nextFiber.parent;
+  }
+  // return fiber.parent?.sibing;
 }
 
 requestIdleCallback(workLoop);
