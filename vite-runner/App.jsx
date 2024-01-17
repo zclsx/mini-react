@@ -11,30 +11,30 @@ import React from "./core/React.js";
 //     return  <div id="hah">mini-react <div>hah</div></div>
 // }
 
-
-
-function Counter({num}) {
+let count = 0;
+let props = {id:"111111"}
+function Counter() {
+  //update
   function handleClick() {
     console.log("click");
+    count++
+    props:{}
+    React.update()
   }
   return (
-  <div>
-    count: {num}
+  <div {...props}>
+    count:{count} 
     <button onClick={handleClick}>click</button>
   </div>
   
   )
 }
 
-// function CounterCountainer() {
-//   return <Counter></Counter> 
-// }
-
 function App(){
     return (
     <div>mini-react
         <Counter num={10}></Counter>
-        <Counter num={20}></Counter>
+
     </div> 
     ) 
 }
