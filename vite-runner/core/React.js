@@ -108,26 +108,44 @@ function initChildren(fiber, children) {
   });
 }
 
+function updateFunctionComponent(fiber) {
+  const children = [fiber.type(fiber.props)];
+
+  initChildren(fiber, children);
+}
+
+function updateHostComponent(fiber) {
+  if (!fiber.dom) {
+    const dom = (fiber.dom = createDom(fiber.type));
+    updatedProps(dom, fiber.props);
+  }
+
+  const children = fiber.props.children;
+  initChildren(fiber, children);
+}
+
 function performWorkOfUnit(fiber) {
   const isFunctionComponent = typeof fiber.type === "function";
-
   if (isFunctionComponent) {
-    // console.log(fiber.type());
+    updateFunctionComponent(fiber);
+  } else {
+    updateHostComponent(fiber);
   }
-  if (!isFunctionComponent) {
-    //1.创建dom
-    if (!fiber.dom) {
-      const dom = (fiber.dom = createDom(fiber.type));
 
-      // fiber.parent.dom.append(dom);
-      updatedProps(dom, fiber.props);
-    }
-  }
-  const children = isFunctionComponent
-    ? [fiber.type(fiber.props)]
-    : fiber.props.children;
-  // console.log(111, children);
-  initChildren(fiber, children);
+  // if (!isFunctionComponent) {
+  //   //1.创建dom
+  //   if (!fiber.dom) {
+  //     const dom = (fiber.dom = createDom(fiber.type));
+
+  //     // fiber.parent.dom.append(dom);
+  //     updatedProps(dom, fiber.props);
+  //   }
+  // }
+  // const children = isFunctionComponent
+  //   ? [fiber.type(fiber.props)]
+  //   : fiber.props.children;
+  // // console.log(111, children);
+  // initChildren(fiber, children);
 
   //4.返回下一个要执行的任务
   if (fiber.child) {

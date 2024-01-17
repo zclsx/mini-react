@@ -11,8 +11,19 @@ import React from "./core/React.js";
 //     return  <div id="hah">mini-react <div>hah</div></div>
 // }
 
+
+
 function Counter({num}) {
-  return <div>count: {num}</div>
+  function handleClick() {
+    console.log("click");
+  }
+  return (
+  <div>
+    count: {num}
+    <button onClick={handleClick}>click</button>
+  </div>
+  
+  )
 }
 
 // function CounterCountainer() {
