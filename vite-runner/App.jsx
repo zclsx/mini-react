@@ -15,13 +15,13 @@ let showBar = false
 
 function Counter() {
   // const foo = <div>foo</div>
-  function Foo() {
-    return <div>foo
-       <div>child1</div>
-       <div>child2</div>
-    </div>
+  // function Foo() {
+  //   return <div>foo
+  //      <div>child1</div>
+  //      <div>child2</div>
+  //   </div>
     
-  }
+  // }
   const bar = <p>bar</p>
 
   function handleShowBar() {
@@ -31,8 +31,9 @@ function Counter() {
   return (
   <div>
     Counter
-    <div>{showBar ? bar : <Foo></Foo>}</div>
+    {/* <div>{showBar ? bar : <Foo></Foo>}</div> */}
     <button onClick={handleShowBar}>showBar</button>
+    {showBar && bar}
   </div>
   
   )

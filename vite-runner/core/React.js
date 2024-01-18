@@ -147,19 +147,20 @@ function initChildren(fiber, children) {
         alternate: oldFiber,
       };
     } else {
-      newFiber = {
-        dom: null,
-        type: child.type,
-        props: child.props,
-        child: null,
-        parent: fiber,
-        sibing: null,
-        effectTag: "placement",
-      };
-    }
-
-    if (oldFiber) {
-      deletions.push(oldFiber);
+      if (child) {
+        newFiber = {
+          dom: null,
+          type: child.type,
+          props: child.props,
+          child: null,
+          parent: fiber,
+          sibing: null,
+          effectTag: "placement",
+        };
+      }
+      if (oldFiber) {
+        deletions.push(oldFiber);
+      }
     }
 
     if (oldFiber) {
@@ -171,7 +172,10 @@ function initChildren(fiber, children) {
     } else {
       preChild.sibing = newFiber;
     }
-    preChild = newFiber;
+    
+    if (newFiber) {
+      preChild = newFiber;
+    }
   });
   while (oldFiber) {
     deletions.push(oldFiber);
