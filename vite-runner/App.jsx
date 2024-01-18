@@ -16,7 +16,11 @@ let showBar = false
 function Counter() {
   // const foo = <div>foo</div>
   function Foo() {
-    return <div>foo</div>
+    return <div>foo
+       <div>child1</div>
+       <div>child2</div>
+    </div>
+    
   }
   const bar = <p>bar</p>
 

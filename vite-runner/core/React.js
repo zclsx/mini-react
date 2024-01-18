@@ -173,6 +173,11 @@ function initChildren(fiber, children) {
     }
     preChild = newFiber;
   });
+  while (oldFiber) {
+    deletions.push(oldFiber);
+
+    oldFiber = oldFiber.sibing;
+  }
 }
 
 function updateFunctionComponent(fiber) {
