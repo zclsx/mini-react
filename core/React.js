@@ -1,5 +1,3 @@
-import { func } from "prop-types";
-
 function createTextNode(text) {
   return {
     type: "TEXT_ELEMENT",
@@ -24,100 +22,104 @@ function createElement(type, props, ...children) {
 
 function render(el, container) {
   nextWorkOfUnit = {
-    dom:container,
-    props:{
-      children:[el]
-    }
-  }
-  // const dom =
-  //   el.type === "TEXT_ELEMENT"
-  //     ? document.createTextNode("")
-  //     : document.createElement(el.type);
-
-  // //id class
-  // Object.keys(el.props).forEach((key) => {
-  //   if (key !== "children") {
-  //     dom[key] = el.props[key];
-  //   }
-  // });
-
-  // const children = el.props.children;
-  // children.forEach((child) => {
-  //   render(child, dom);
-  // });
-
-  // container.append(dom);
+    dom: container,
+    props: {
+      children: [el],
+    },
+  };
+  root = nextWorkOfUnit;
 }
 
+let root = null;
 let nextWorkOfUnit = null;
-const taskId =1 
-function workLoop(deadline){
-  taskId++;
-
+function workLoop(deadline) {
   let shoudYied = false;
-  while(!shoudYied && nextWorkOfUnit){
-          
-    nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit)
-         
-          shoudYied = deadline.timeRemaining() < 1;
+  while (!shoudYied && nextWorkOfUnit) {
+    nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit);
+
+    shoudYied = deadline.timeRemaining() < 1;
   }
 
-  requestIdleCallback(workLoop)
+  if (!nextWorkOfUnit && root) {
+    commitRoot();
+  }
+
+  requestIdleCallback(workLoop);
 }
 
-function performWorkOfUnit(work){
- //1.创建dom  
- if(!work.dom){
-  const dom =
-  work.type === "TEXT_ELEMENT"
-      ? document.createTextNode("")
-      : document.createElement(work.type);
+function commitRoot(root) {
+  commitWork(root.child);
+  root = null;
+}
 
-      work.parent.dom.append(dom)
+function commitWork(fiber) {
+  if (!fiber.dom) return;
+  fiber.parent.dom.append(fiber.dom);
+  commitWork(fiber.child);
+  commitWork(fiber.sibing);
+}
+
+function createDom(type) {
+  return type === "TEXT_ELEMENT"
+    ? document.createTextNode("")
+    : document.createElement(type);
+}
+
+function updatedProps(dom, props) {
   //2.处理props
-  Object.keys(work.props).forEach((key) => {
+  Object.keys(props).forEach((key) => {
     if (key !== "children") {
-      dom[key] = work.props[key];
+      dom[key] = props[key];
     }
   });
 }
 
+function initChildren(work) {
   //3.链表转换 设置好指针
-   const children = el.props.children;
-  children.forEach((child,index) => {
+  const children = work.props.children;
+  children.forEach((child, index) => {
     const newWork = {
-      dom:null,
-      type:child.type,
-      props:child.props,
-      child:null,
-      parent:work,
-      sibing:null,
-    }
+      dom: null,
+      type: child.type,
+      props: child.props,
+      child: null,
+      parent: work,
+      sibing: null,
+    };
 
-    if(index === 0){
-        work.child = newWork
-    }else {
-      preChild.sibing = newWork
+    if (index === 0) {
+      work.child = newWork;
+    } else {
+      preChild.sibing = newWork;
     }
-    preChild = newWork
+    preChild = newWork;
   });
+}
+
+function performWorkOfUnit(work) {
+  //1.创建dom
+  if (!work.dom) {
+    const dom = (work.dom = createDom(work.type));
+
+    work.parent.dom.append(dom);
+    updatedProps(dom, work.props);
+  }
+
+  initChildren(work);
 
   //4.返回下一个要执行的任务
-  if(work.child){
-    return work.child
+  if (work.child) {
+    return work.child;
   }
 
-  if(work.sibing){
-    return work.sibing
+  if (work.sibing) {
+    return work.sibing;
   }
 
-  return work.parent?.sibing
+  return work.parent?.sibing;
 }
 
-
-
-
-requestIdleCallback(workLoop)
+requestIdleCallback(workLoop);
 
 const React = {
   createElement,

@@ -31,10 +31,11 @@ function render(el, container) {
   };
   root = nextWorkOfUnit;
 }
-
+//work in progress
 let root = null;
 let currentRoot = root;
 let nextWorkOfUnit = null;
+let deletions = [];
 function workLoop(deadline) {
   let shoudYied = false;
   while (!shoudYied && nextWorkOfUnit) {
@@ -51,9 +52,23 @@ function workLoop(deadline) {
 }
 
 function commitRoot() {
+  deletions.forEach(commitDeletion);
   commitWork(root.child);
   currentRoot = root; // 确保 currentRoot 指向最新的渲染根
   root = null;
+  deletions = [];
+}
+
+function commitDeletion(fiber) {
+  if (fiber.dom) {
+    let fiberParent = fiber.parent;
+    while (!fiberParent.dom) {
+      fiberParent = fiberParent.parent;
+    }
+    fiberParent.dom.removeChild(fiber.dom);
+  } else {
+    commitDeletion(fiber.child);
+  }
 }
 
 function commitWork(fiber) {
@@ -142,6 +157,11 @@ function initChildren(fiber, children) {
         effectTag: "placement",
       };
     }
+
+    if (oldFiber) {
+      deletions.push(oldFiber);
+    }
+
     if (oldFiber) {
       oldFiber = oldFiber.sibing;
     }

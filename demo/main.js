@@ -1,10 +1,10 @@
-const el = document.createElement("div")
+const el = document.createElement("div");
 
-el.innerText = "hah"
+el.innerText = "hah";
 
-document.body.append(el)
+document.body.append(el);
 
-let i = 0
-while(i<1000000){
-    i++;
+let i = 0;
+while (i < 1000000) {
+  i++;
 }

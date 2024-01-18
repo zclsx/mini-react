@@ -11,20 +11,24 @@ import React from "./core/React.js";
 //     return  <div id="hah">mini-react <div>hah</div></div>
 // }
 
-let count = 0;
-let props = {id:"111111"}
+let showBar = false 
+
 function Counter() {
-  //update
-  function handleClick() {
-    console.log("click");
-    count++
-    props:{}
+  // const foo = <div>foo</div>
+  function Foo() {
+    return <div>foo</div>
+  }
+  const bar = <p>bar</p>
+
+  function handleShowBar() {
+    showBar = !showBar
     React.update()
   }
   return (
-  <div {...props}>
-    count:{count} 
-    <button onClick={handleClick}>click</button>
+  <div>
+    Counter
+    <div>{showBar ? bar : <Foo></Foo>}</div>
+    <button onClick={handleShowBar}>showBar</button>
   </div>
   
   )
@@ -33,7 +37,7 @@ function Counter() {
 function App(){
     return (
     <div>mini-react
-        <Counter num={10}></Counter>
+        <Counter></Counter>
 
     </div> 
     ) 
