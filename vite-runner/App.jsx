@@ -49,7 +49,8 @@ function Foo(){
   function handleClick(){
     setCount((c) => c+1);
     // setBar((s)=>s+"bar")
-    setBar("barbar")
+    // setBar("barbar")
+    setBar(() => "barbar")
   }
  
   return (
