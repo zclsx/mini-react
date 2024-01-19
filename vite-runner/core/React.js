@@ -207,6 +207,8 @@ function initChildren(fiber, children) {
 
 // 更新函数组件的函数
 function updateFunctionComponent(fiber) {
+  stateHooks = [];
+  stateHookIndex = 0;
   WipFiber = fiber; // 设置正在处理的 fiber
   const children = [fiber.type(fiber.props)]; // 执行函数组件获取子节点
   initChildren(fiber, children); // 初始化子节点
@@ -259,11 +261,41 @@ function update() {
   };
 }
 
+let stateHooks;
+let stateHookIndex;
+function useState(initial) {
+  let currentFiber = WipFiber;
+  const oldHook = currentFiber.alternate?.stateHook[stateHookIndex];
+  const stateHook = {
+    state: oldHook ? oldHook.state : initial,
+    queue: oldHook ? oldHook.queue : [],
+  };
+  stateHook.queue.forEach((action) => {
+    stateHook.state = action(stateHook.state);
+  });
+  stateHook.queue = []; // 清空队列
+  stateHookIndex++;
+  stateHooks.push(stateHook);
+
+  currentFiber.stateHooks = stateHooks;
+  function setState(action) {
+    // stateHook.state = action(stateHook.state);
+    stateHook.queue.push(typeof action === "function" ? action : () => action);
+    wipRoot = {
+      ...currentFiber, // 复制当前 fiber 的属性
+      alternate: currentFiber, // 设置 alternate 为当前 fiber
+    };
+    nextWorkOfUnit = wipRoot; // 将下一个工作单元设置为新创建的 wipRoot
+  }
+  return [stateHook.state, setState]; // 返回 state 和 setState 两个函数]
+}
+
 // React 对象，包含 update, createElement, render 函数
 const React = {
   update, // 更新函数
   createElement, // 创建元素函数
   render, // 渲染函数
+  useState,
 };
 
 export default React; // 导出 React 对象

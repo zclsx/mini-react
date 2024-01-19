@@ -42,57 +42,62 @@ import React from "./core/React.js";
 
 let countFoo =1
 function Foo(){
-  console.log("Foo")
-  const update = React.update()
+  // console.log("Foo")
+  const [count , setCount] = React.useState(10)
+  const [bar , setBar] = React.useState("bar")
+  // const update = React.update()
   function handleClick(){
-    countFoo++
-    update()
+    setCount((c) => c+1);
+    // setBar((s)=>s+"bar")
+    setBar("barbar")
   }
  
   return (
     <div>
       <h1>foo</h1>
-      {countFoo}
+      {count}
+      
+      <div>{bar}</div>
       <button onClick={handleClick}>click</button>
     </div>
   )
 }
 
-let countBar = 1
-function Bar(){
-  console.log("Bar")
-  const update = React.update()
-  function handleClick(){
-    countBar++
-    update()
-  }
+// let countBar = 1
+// function Bar(){
+//   console.log("Bar")
+//   const update = React.update()
+//   function handleClick(){
+//     countBar++
+//     update()
+//   }
 
-  return (
-    <div>
-      <h1>bar</h1>
-      {countBar}
-      <button onClick={handleClick}>click</button>
-    </div>
-  )
-}
+//   return (
+//     <div>
+//       <h1>bar</h1>
+//       {countBar}
+//       <button onClick={handleClick}>click</button>
+//     </div>
+//   )
+// }
 
 let countRoot = 1;
 function App(){
-  console.log("App")
+  // console.log("App")
   
-    function handleClick(){
-        countRoot++
-        React.update()
-    }
+  //   function handleClick(){
+  //       countRoot++
+  //       React.update()
+  //   }
 
 
     return (
     <div>mini-react
         {/* <Counter></Counter> */}
-      mini-react count: {countRoot}
+      {/* mini-react count: {countRoot} */}
       <button onClick={handleClick}>click</button>
       <Foo></Foo>
-      <Bar></Bar>
+      {/* <Bar></Bar> */}
     </div> 
     ) 
 }
