@@ -54,11 +54,24 @@ function Foo(){
   }
   React.useEffect(() => {
     console.log("init")
+    return () => {
+      console.log("cleanup 0")
+    }
   }, [])
+ 
   React.useEffect(() => {
     console.log("update",count)
+    //cleanup
+    return () => {
+      console.log("cleanup 1")
+    }
   }, [count])
- 
+  React.useEffect(() => {
+    console.log("init")
+    return () => {
+      console.log("cleanup 2")
+    }
+  }, [count])
   return (
     <div>
       <h1>foo</h1>
@@ -105,7 +118,7 @@ function App(){
     <div>mini-react
         {/* <Counter></Counter> */}
       {/* mini-react count: {countRoot} */}
-      <button onClick={handleClick}>click</button>
+      {/* <button onClick={handleClick}>click</button> */}
       <Foo></Foo>
       {/* <Bar></Bar> */}
     </div> 

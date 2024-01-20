@@ -84,7 +84,7 @@ function commitEffectHooks() {
       //init
 
       fiber.effectHook?.callback((hook) => {
-        hook.callback();
+        hook.cleanup = hook.callback();
       });
     } else {
       //update
@@ -99,7 +99,7 @@ function commitEffectHooks() {
             return oldDep !== newHook.deps[i];
           });
 
-          needUpdate && newHook?.callback();
+          needUpdate && (newHook.cleanup = newHook.callback());
         }
       });
     }
@@ -108,6 +108,18 @@ function commitEffectHooks() {
     run(fiber.child);
     run(fiber.sibing);
   }
+  function runCleanup(fiber) {
+    if (!fiber) return;
+
+    fiber.effectHooks?.effectHooks?.forEach((hook) => {
+      if (hook.deps.length > 0) {
+        hook.cleanup && hook.cleanup();
+      }
+    });
+    runCleanup(fiber.child);
+    runCleanup(fiber.sibing);
+  }
+  runCleanup(wipRoot);
   run(WipFiber);
 }
 
@@ -344,6 +356,7 @@ function useEffect(callback, deps) {
   const effectHook = {
     callback,
     deps,
+    cleanup: undefined,
   };
   effectHooks.push(effectHook);
   WipFiber.effectHooks = effectHooks;
