@@ -72,8 +72,43 @@ function commitRoot() {
   deletions.forEach(commitDeletion); // 提交需要删除的节点
   commitWork(wipRoot.child); // 提交工作
   currentRoot = wipRoot; // 更新当前渲染根节点
+  commitEffectHooks();
   wipRoot = null; // 清空 wipRoot
   deletions = []; // 清空删除列表
+}
+
+function commitEffectHooks() {
+  function run(fiber) {
+    if (!fiber) return;
+    if (!fiber.alternate) {
+      //init
+
+      fiber.effectHook?.callback((hook) => {
+        hook.callback();
+      });
+    } else {
+      //update
+      //deps 有没有发生改变
+
+      fiber.effectHooks?.forEach((newHook, index) => {
+        if (newHook.deps.length > 0) {
+          const oldEffectHook = fiber.alternate?.effectHooks[index];
+
+          //some
+          const needUpdate = oldEffectHook.deps.some((oldDep, i) => {
+            return oldDep !== newHook.deps[i];
+          });
+
+          needUpdate && newHook?.callback();
+        }
+      });
+    }
+
+    // fiber.effectHook?.callback();
+    run(fiber.child);
+    run(fiber.sibing);
+  }
+  run(WipFiber);
 }
 
 // 提交删除的函数
@@ -209,6 +244,7 @@ function initChildren(fiber, children) {
 function updateFunctionComponent(fiber) {
   stateHooks = [];
   stateHookIndex = 0;
+  effectHooks = [];
   WipFiber = fiber; // 设置正在处理的 fiber
   const children = [fiber.type(fiber.props)]; // 执行函数组件获取子节点
   initChildren(fiber, children); // 初始化子节点
@@ -265,33 +301,52 @@ let stateHooks;
 let stateHookIndex;
 function useState(initial) {
   let currentFiber = WipFiber;
-  const oldHook = currentFiber.alternate?.stateHook[stateHookIndex];
+  const oldHooks = currentFiber.alternate
+    ? currentFiber.alternate.stateHooks
+    : [];
+  const oldHook = oldHooks[stateHookIndex];
+
   const stateHook = {
     state: oldHook ? oldHook.state : initial,
     queue: oldHook ? oldHook.queue : [],
   };
+
   stateHook.queue.forEach((action) => {
-    stateHook.state = action(stateHook.state);
-  });
-  stateHook.queue = []; // 清空队列
-  stateHookIndex++;
-  stateHooks.push(stateHook);
-
-  currentFiber.stateHooks = stateHooks;
-  function setState(action) {
-    const eagerState =
+    stateHook.state =
       typeof action === "function" ? action(stateHook.state) : action;
-    if (eagerState === stateHook.state) return;
+  });
 
-    // stateHook.state = action(stateHook.state);
-    stateHook.queue.push(typeof action === "function" ? action : () => action);
+  stateHook.queue = []; // 清空队列
+
+  const setState = (action) => {
+    stateHook.queue.push(action);
     wipRoot = {
-      ...currentFiber, // 复制当前 fiber 的属性
-      alternate: currentFiber, // 设置 alternate 为当前 fiber
+      dom: currentRoot.dom,
+      props: currentRoot.props,
+      alternate: currentRoot,
     };
-    nextWorkOfUnit = wipRoot; // 将下一个工作单元设置为新创建的 wipRoot
+    nextWorkOfUnit = wipRoot;
+  };
+
+  if (!currentFiber.stateHooks) {
+    currentFiber.stateHooks = [];
   }
-  return [stateHook.state, setState]; // 返回 state 和 setState 两个函数]
+
+  currentFiber.stateHooks[stateHookIndex] = stateHook;
+
+  stateHookIndex++;
+
+  return [stateHook.state, setState];
+}
+
+let effectHooks;
+function useEffect(callback, deps) {
+  const effectHook = {
+    callback,
+    deps,
+  };
+  effectHooks.push(effectHook);
+  WipFiber.effectHooks = effectHooks;
 }
 
 // React 对象，包含 update, createElement, render 函数
@@ -300,6 +355,7 @@ const React = {
   createElement, // 创建元素函数
   render, // 渲染函数
   useState,
+  useEffect,
 };
 
 export default React; // 导出 React 对象

@@ -52,12 +52,17 @@ function Foo(){
     // setBar("barbar")
     setBar(() => "barbar")
   }
+  React.useEffect(() => {
+    console.log("init")
+  }, [])
+  React.useEffect(() => {
+    console.log("update",count)
+  }, [count])
  
   return (
     <div>
       <h1>foo</h1>
-      {count}
-      
+      {count} 
       <div>{bar}</div>
       <button onClick={handleClick}>click</button>
     </div>
@@ -86,11 +91,15 @@ let countRoot = 1;
 function App(){
   // console.log("App")
   
-  //   function handleClick(){
-  //       countRoot++
-  //       React.update()
-  //   }
+    function handleClick(){
+        countRoot++
+        React.update()
+        React.useEffect()
+    }
 
+//   function handleClick() {
+//     console.log("Button clicked");
+// }
 
     return (
     <div>mini-react
